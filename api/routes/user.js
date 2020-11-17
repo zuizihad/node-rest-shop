@@ -2,11 +2,13 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const User = require("../models/user");
 const { route } = require("./products");
 
 router.post("/signup", (req, res, next) => {
+  //check user is already regestered
   User.find({ email: req.body.email })
     .exec()
     .then((user) => {
@@ -15,6 +17,7 @@ router.post("/signup", (req, res, next) => {
           message: "email exists",
         });
       } else {
+        //created new user
         bcrypt.hash(req.body.password, 10, (err, hash) => {
           if (err) {
             return res.status(500).json({
@@ -62,8 +65,17 @@ router.post("/login", (req, res, next) => {
           });
         }
         if (result) {
+          const token = jwt.sign(
+            {
+              email: user[0].email,
+              userId: user[0]._id,
+            },
+            process.env.JWT_KEY,
+            { expiresIn: "1h" }
+          );
           return res.status(200).json({
             message: "Auth Successful",
+            token: token,
           });
         }
         res.status(401).json({
