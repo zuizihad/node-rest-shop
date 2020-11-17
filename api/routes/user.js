@@ -5,7 +5,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/user");
-const { route } = require("./products");
 
 router.post("/signup", (req, res, next) => {
   //check user is already regestered
@@ -46,6 +45,12 @@ router.post("/signup", (req, res, next) => {
           }
         });
       }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({
+        error: err,
+      });
     });
 });
 
@@ -70,7 +75,7 @@ router.post("/login", (req, res, next) => {
               email: user[0].email,
               userId: user[0]._id,
             },
-            process.env.JWT_KEY,
+            "secret",
             { expiresIn: "1h" }
           );
           return res.status(200).json({
